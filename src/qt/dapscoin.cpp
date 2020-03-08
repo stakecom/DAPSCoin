@@ -512,7 +512,7 @@ void BitcoinApplication::initializeResult(int retval)
         QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
         if (pwalletMain) {
             if (walletModel->getEncryptionStatus() == WalletModel::Locked) {
-                WalletModel::UnlockContext ctx(walletModel->requestUnlock(AskPassphraseDialog::Context::Unlock_Full, true));
+                WalletModel::UnlockContext ctx(walletModel->requestUnlock());
                 if (ctx.isValid()) {
                     walletUnlocked = true;
                     if (fLiteMode) {

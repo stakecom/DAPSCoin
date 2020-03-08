@@ -73,7 +73,7 @@ CAmount WalletModel::getBalance(const CCoinControl* coinControl) const
 {
     if (coinControl) {
 
-        {   
+        {
             return wallet->GetBalance();
         }
     }
@@ -86,7 +86,7 @@ CAmount WalletModel::getUnconfirmedBalance() const
     return wallet->GetUnconfirmedBalance();
 }
 
-CAmount WalletModel::getSpendableBalance() const 
+CAmount WalletModel::getSpendableBalance() const
 {
     return wallet->GetSpendableBalance();
 }
@@ -180,7 +180,7 @@ void WalletModel::emitBalanceChanged()
     // Force update of UI elements even when no values have changed
     if (cachedBalance == 0 && !checkBalanceChanged())
         return;
-    
+
     Q_EMIT balanceChanged(cachedBalance, cachedUnconfirmedBalance, cachedImmatureBalance,
         cachedWatchOnlyBalance, cachedWatchUnconfBalance, cachedWatchImmatureBalance);
 }
@@ -206,14 +206,14 @@ bool WalletModel::checkBalanceChanged()
         newWatchImmatureBalance = getWatchImmatureBalance();
     }
 
-    if (walletLocked != pwalletMain->IsLocked() || 
-        (stkEnabled != (nLastCoinStakeSearchInterval > 0)) || 
-        newSpendableBalance != spendableBalance || 
-        cachedBalance != newBalance || 
-        cachedUnconfirmedBalance != newUnconfirmedBalance || 
+    if (walletLocked != pwalletMain->IsLocked() ||
+        (stkEnabled != (nLastCoinStakeSearchInterval > 0)) ||
+        newSpendableBalance != spendableBalance ||
+        cachedBalance != newBalance ||
+        cachedUnconfirmedBalance != newUnconfirmedBalance ||
         cachedImmatureBalance != newImmatureBalance ||
-        cachedWatchOnlyBalance != newWatchOnlyBalance || 
-        cachedWatchUnconfBalance != newWatchUnconfBalance || 
+        cachedWatchOnlyBalance != newWatchOnlyBalance ||
+        cachedWatchUnconfBalance != newWatchUnconfBalance ||
         cachedWatchImmatureBalance != newWatchImmatureBalance ||
         cachedTxLocks != nCompleteTXLocks) {
         cachedBalance = newBalance;
@@ -545,32 +545,35 @@ void WalletModel::unsubscribeFromCoreSignals()
 }
 
 // WalletModel::UnlockContext implementation
-WalletModel::UnlockContext WalletModel::requestUnlock(AskPassphraseDialog::Context context, bool relock)
+WalletModel::UnlockContext WalletModel::requestUnlock()
 {
-    bool was_locked = getEncryptionStatus() == Locked;
-
-    if (!was_locked && isAnonymizeOnlyUnlocked()) {
-        setWalletLocked(true);
-        wallet->fWalletUnlockAnonymizeOnly = false;
-        was_locked = getEncryptionStatus() == Locked;
-    }
-
-    if (was_locked) {
+    const WalletModel::EncryptionStatus status_before = getEncryptionStatus();
+    if (status_before == Locked || status_before == UnlockedForAnonymizationOnly)
+    {
         // Request UI to unlock wallet
-        Q_EMIT requireUnlock(context);
+        Q_EMIT requireUnlock();
     }
     // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
-    bool valid = getEncryptionStatus() != Locked;
+    const WalletModel::EncryptionStatus status_after = getEncryptionStatus();
+    bool valid = (status_after != Locked && status_after != UnlockedForAnonymizationOnly);
 
-    return UnlockContext(valid, relock);
+    return UnlockContext(this, valid, status_before);
 }
 
-WalletModel::UnlockContext::UnlockContext(bool valid, bool relock) : valid(valid), relock(relock)
+WalletModel::UnlockContext::UnlockContext(WalletModel *_wallet, bool _valid, const WalletModel::EncryptionStatus& status_before):
+        wallet(_wallet),
+        valid(_valid),
+        was_status(status_before),
+        relock(status_before == Locked || status_before == UnlockedForAnonymizationOnly)
 {
 }
 
 WalletModel::UnlockContext::~UnlockContext()
 {
+    if (valid && relock) {
+        if (was_status == Locked) wallet->setWalletLocked(true);
+        else if (was_status == UnlockedForAnonymizationOnly) wallet->lockForStakingOnly();
+    }
 }
 
 CWallet* WalletModel::getCWallet()
@@ -578,7 +581,7 @@ CWallet* WalletModel::getCWallet()
     return this->wallet;
 }
 
-void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
+void WalletModel::UnlockContext::CopyFrom(UnlockContext&& rhs)
 {
     // Transfer context; old object no longer relocks wallet
     *this = rhs;
@@ -646,12 +649,12 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 
 bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const
 {
-    LOCK2(cs_main, wallet->cs_wallet);   
+    LOCK2(cs_main, wallet->cs_wallet);
     return wallet->IsLockedCoin(hash, n);
 }
 
 void WalletModel::lockCoin(COutPoint& output)
-{   
+{
     LOCK2(cs_main, wallet->cs_wallet);
     wallet->LockCoin(output);
 }
@@ -807,7 +810,7 @@ std::map<QString, QString> getTx(CWallet* wallet, CWalletTx tx)
     std::string txHash = tx.GetHash().GetHex();
     QList<QString> addressBook = getAddressBookData(wallet);
     std::map<QString, QString> txData;
-    
+
     if (tx.hashBlock != 0) {
         BlockMap::iterator mi = mapBlockIndex.find(tx.hashBlock);
         if (mi != mapBlockIndex.end() && (*mi).second) {
@@ -822,7 +825,7 @@ std::map<QString, QString> getTx(CWallet* wallet, CWalletTx tx)
     for (TransactionRecord TxRecord : decomposedTx) {
         txData["date"] = QString(GUIUtil::dateTimeStr(TxRecord.time));
         // if address is in book, use data from book, else use data from transaction
-        txData["address"]=""; 
+        txData["address"]="";
 //        for (QString addressBookEntry : addressBook)
 //            if (addressBookEntry.contains(TxRecord.address.c_str())) {
 //                txData["address"] = addressBookEntry;
@@ -866,7 +869,7 @@ std::map<QString, QString> getTx(CWallet* wallet, CWalletTx tx)
         case TransactionRecord::MNReward:
             txData["type"] = QString("Masternode");
             txData["amount"] = BitcoinUnits::format(0,  TxRecord.credit); //absolute value of total amount
-            break;     
+            break;
         default:
             txData["type"] = QString("Unknown");
         }
@@ -885,7 +888,7 @@ QList<QString> getAddressBookData(CWallet* wallet)
             AddressBookData.push_front(desc + " | " + addressHash);
         else
             AddressBookData.push_front(addressHash);
-       
+
     }
     return AddressBookData;
 }
