@@ -283,7 +283,7 @@ bool CheckPoAContainRecentHash(const CBlock& block)
 
 bool CheckNumberOfAuditedPoSBlocks(const CBlock& block)
 {
-    if (block.posBlocksAudited.size() < (size_t)Params().MIN_NUM_POS_BLOCKS_AUDITED()) {
+    if (block.posBlocksAudited.size() < (size_t)Params().MIN_NUM_POS_BLOCKS_AUDITED() && block.posBlocksAudited.size() > (size_t)Params().MAX_NUM_POS_BLOCKS_AUDITED() ) {
         return false;
     }
     return true;
