@@ -424,7 +424,7 @@ bool OptionsPage::matchNewPasswords()
 void OptionsPage::on_EnableStaking(ToggleButton* widget)
 {
     int status = model->getEncryptionStatus();
-    if (status == WalletModel::Locked || status == WalletModel::UnlockedForAnonymizationOnly) {
+    if (status == WalletModel::Locked || status == WalletModel::UnlockedForStaking) {
         QMessageBox msgBox;
         msgBox.setWindowTitle("Staking Setting");
         msgBox.setIcon(QMessageBox::Information);
@@ -621,7 +621,7 @@ void OptionsPage::on_EnableStaking(ToggleButton* widget)
 void OptionsPage::on_Enable2FA(ToggleButton* widget)
 {
     int status = model->getEncryptionStatus();
-    if (status == WalletModel::Locked || status == WalletModel::UnlockedForAnonymizationOnly) {
+    if (status == WalletModel::Locked || status == WalletModel::UnlockedForStaking) {
         QMessageBox msgBox;
         msgBox.setWindowTitle("2FA Setting");
         msgBox.setIcon(QMessageBox::Information);
@@ -816,7 +816,7 @@ void OptionsPage::on_month() {
 
 void OptionsPage::onShowMnemonic() {
     int status = model->getEncryptionStatus();
-    if (status == WalletModel::Locked || status == WalletModel::UnlockedForAnonymizationOnly) {
+    if (status == WalletModel::Locked || status == WalletModel::UnlockedForStaking) {
         WalletModel::UnlockContext ctx(model->requestUnlock());
         if (!ctx.isValid()) {
             QMessageBox msgBox;
@@ -878,7 +878,7 @@ void OptionsPage::onShowMnemonic() {
 
 void OptionsPage::setAutoConsolidate(int state) {
     int status = model->getEncryptionStatus();
-    if (status == WalletModel::Locked || status == WalletModel::UnlockedForAnonymizationOnly) {
+    if (status == WalletModel::Locked || status == WalletModel::UnlockedForStaking) {
         QMessageBox msgBox;
         msgBox.setWindowTitle("Staking Settings");
         msgBox.setIcon(QMessageBox::Information);
