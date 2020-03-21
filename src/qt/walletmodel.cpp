@@ -129,6 +129,16 @@ void WalletModel::updateStatus()
         Q_EMIT encryptionStatusChanged(newEncryptionStatus);
 }
 
+bool WalletModel::isWalletUnlocked() const
+{
+    EncryptionStatus status = getEncryptionStatus();
+    return status == Unencrypted || status == Unlocked;
+}
+
+bool WalletModel::isWalletLocked() const {
+    return getEncryptionStatus() == Locked;
+}
+
 bool IsImportingOrReindexing() {
     return fImporting || fReindex;
 }
