@@ -384,17 +384,17 @@ bool CheckPoAblockTime(const CBlock& block)
     if (block.hashPrevPoABlock.IsNull()) {
         ret = true;
     } else {
-        LogPrint("debug", "%s: Previous PoA block hash %s\n", __func__, block.hashPrevPoABlock.GetHex());
+        LogPrint("poa", "%s: Previous PoA block hash %s\n", __func__, block.hashPrevPoABlock.GetHex());
         if (mapBlockIndex.count(block.hashPrevPoABlock) != 0) {
             CBlockIndex* pindex = mapBlockIndex[block.hashPrevPoABlock];
             uint32_t prevPoATime = pindex->nTime;
             if (block.nTime > prevPoATime && (block.nTime - pindex->nTime >= (uint32_t)Params().POA_BLOCK_TIME())) {
                 ret = true;
             }
-            LogPrint("debug", "%s: PoA Block time: %d, Previous: %d, Current: %d, Distance: %d\n", __func__,
+            LogPrint("poa", "%s: PoA Block time: %d, Previous: %d, Current: %d, Distance: %d\n", __func__,
                 Params().POA_BLOCK_TIME(), prevPoATime, block.nTime, block.nTime - pindex->nTime);
         } else {
-            LogPrint("debug", "%s: Cannot find block hash %s\n", __func__, block.hashPrevPoABlock.GetHex());
+            LogPrint("poa", "%s: Cannot find block hash %s\n", __func__, block.hashPrevPoABlock.GetHex());
         }
     }
     return ret;
@@ -406,7 +406,7 @@ bool CheckPoABlockNotAuditingOverlap(const CBlock& block)
 
     if (block.hashPrevPoABlock.IsNull()) {
         //First PoA block
-        LogPrint("debug", "%s: First PoA Block Hash: %s\n", __func__, block.GetHash().GetHex());
+        LogPrint("poa", "%s: First PoA Block Hash: %s\n", __func__, block.GetHash().GetHex());
         ret = true;
     } else {
         if (mapBlockIndex.count(block.hashPrevPoABlock) != 0) {
@@ -420,7 +420,7 @@ bool CheckPoABlockNotAuditingOverlap(const CBlock& block)
                 for (size_t j = 0; j < prevPoablock.posBlocksAudited.size(); j++) {
                     if (prevPoablock.posBlocksAudited[j].hash == block.posBlocksAudited[i].hash && prevPoablock.posBlocksAudited[j].nTime == block.posBlocksAudited[i].nTime && prevPoablock.posBlocksAudited[j].height == block.posBlocksAudited[i].height) {
                         isAlreadyAudited = true;
-                        LogPrint("debug", "%s: PoA Block Hash: %s, is already auditted by Block %s\n", __func__,
+                        LogPrint("poa", "%s: PoA Block Hash: %s, is already auditted by Block %s\n", __func__,
                             block.posBlocksAudited[i].hash.GetHex(),
                             prevPoablock.GetHash().GetHex());
                         break;
