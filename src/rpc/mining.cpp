@@ -141,6 +141,7 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
     bool fGenerate = true;
     if (params.size() > 0)
         fGenerate = params[0].get_bool();
+        pwalletMain->WriteStakingStatus(fGenerate);
 
     int nGenProcLimit = -1;
     if (params.size() > 1) {
