@@ -37,6 +37,7 @@ The following are developer notes on how to build DAPS on your native platform. 
 
 - [OSX Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
+- [Android Build Notes](build-android.md)
 - [Gitian Building Guide](gitian-building.md)
 
 Development
