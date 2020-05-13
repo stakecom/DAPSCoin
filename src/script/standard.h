@@ -91,6 +91,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::
 
 CScript GetScriptForDestination(const CPubKey& dest);
 CScript GetScriptForDestination(const CTxDestination& dest);
+CScript GetScriptForRawPubKey(const CPubKey& pubKey);
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 
 #endif // BITCOIN_SCRIPT_STANDARD_H
