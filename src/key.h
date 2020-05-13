@@ -175,7 +175,7 @@ struct CExtKey {
     void Decode(const unsigned char code[74]);
     bool Derive(CExtKey& out, unsigned int nChild) const;
     CExtPubKey Neuter() const;
-    void SetMaster(const unsigned char* seed, unsigned int nSeedLen);
+    void SetSeed(const unsigned char* seed, unsigned int nSeedLen);
 };
 
 /** Check that required EC support is available at runtime */
