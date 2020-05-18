@@ -2927,6 +2927,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!CheckPoABlockNotContainingPoABlockInfo(block)) {
             return state.DoS(100, error("ConnectBlock(): A PoA block should not audit any existing PoA blocks"));
         }
+
+        if (block.IsPoABlockByVersion() && block.GetBlockTime() >= GetAdjustedTime()) {
+            return state.DoS(100, error("ConnectBlock(): A PoA block should not be in the future."));
+        }
     }
 
     // verify that the view's current state corresponds to the previous block
